@@ -3,6 +3,11 @@
 #include "WordPump.h"
 #include "FileWordsEnumerator.h"
 
+// Author: Bogdanov Dmitry, PSm-22
+// Time spent: 99m
+// Complexity: O(N); N - input text words count
+// Memory usage: O(M+N); M, N - keywords length
+
 class MinSolver : public IWordAcceptor
 {
 public:
