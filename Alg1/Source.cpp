@@ -45,19 +45,80 @@ private:
 	int m_firstDistance = INT_MAX;
 };
 
-int SolveMin(WordEnumerator &wordSource, std::string const& first, std::string const& second)
+class MaxSolver : public IWordAcceptor
 {
-	MinSolver ms(first, second);
+public:
+	MaxSolver(std::string const& first, std::string const& second)
+		: m_first(first)
+		, m_second(second)
+	{
+	}
+
+	void SendWord(std::string const & word) final
+	{
+		if (m_firstDistance == INT_MIN)
+		{
+			if (word == m_first)
+			{
+				m_firstDistance = 0;
+			}
+		}
+		else
+		{
+			++m_firstDistance;
+			if (word == m_second)
+			{
+				m_result = m_firstDistance - 1;
+			}
+		}
+	}
+
+	void Finalize() final
+	{
+	}
+
+	int GetResult() const
+	{
+		return m_result;
+	}
+
+private:
+	std::string m_first;
+	std::string m_second;
+	int m_result = INT_MIN;
+	int m_firstDistance = INT_MIN;
+};
+
+struct Solution
+{
+	int min;
+	int max;
+};
+
+Solution Solve(WordEnumerator &wordSource, std::string const& first, std::string const& second)
+{
+	MinSolver minFwd(first, second);
+	MinSolver minRev(second, first);
+	MaxSolver maxFwd(first, second);
+	MaxSolver maxRev(second, first);
+
 	PumpWords(wordSource, [&](IWordAcceptorFunc const& accCb) {
-		accCb(ms);
+		accCb(minFwd);
+		accCb(minRev);
+		accCb(maxFwd);
+		accCb(maxRev);
 	});
-	return ms.GetResult();
+
+	return { std::min(minFwd.GetResult(), minRev.GetResult()),
+		std::max(maxFwd.GetResult(), maxRev.GetResult()) };
 }
 
 int main()
 {
 	auto wordEnumerator = GetFileWordsEnumerator("input.txt");
-	std::cout << SolveMin(wordEnumerator, "Today", "day") << std::endl;
+	const auto solution = Solve(wordEnumerator, "Today", "day");
+	std::cout << "min distance: " << solution.min << std::endl;
+	std::cout << "max distance: " << solution.max << std::endl;
 	std::cin.get();
 	return 0;
 }
