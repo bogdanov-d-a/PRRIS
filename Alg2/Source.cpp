@@ -4,6 +4,20 @@
 #include <iostream>
 #include <string>
 
+// Author: Bogdanov Dmitry, PSm-22
+// Time spent: 68m
+// Insert complexity: O(N); N - insert word length
+// FindCount complexity: O(N*M); N - average prefix matching word length, M - prefix matching word count
+// Memory usage: O(N*M); N - average prefix matching word length, M - prefix matching word count
+//
+// Words are split into characters and every character is used to create a tree node:
+//   first character is appended to root
+//   next character is appended to previous character's child
+//   ...
+//   last character's child is marked as endpoint
+//
+// Breadth-first search (BFS) algorithm is used to find and count endpoints on prefix subtree
+
 constexpr int CHAR_COUNT = 26;
 
 int CharToInt(char c)
