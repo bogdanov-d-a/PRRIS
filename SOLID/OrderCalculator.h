@@ -28,6 +28,7 @@ public:
 	virtual std::unique_ptr<IFindResult> Find(ItemId const& id, ItemPrice price) = 0;
 	virtual void Insert(ItemId const& id, ItemPrice price, ItemCount count) = 0;
 	virtual void Remove(ItemId const& id, ItemPrice price) = 0;
+	virtual void Iterate(std::function<void(ItemId const& id, ItemPrice price, ItemCount count)> const& cb) const = 0;
 };
 
 using ItemTransformer = std::function<void(IItemAccessor &itemAccessor)>;

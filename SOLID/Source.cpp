@@ -32,6 +32,17 @@ public:
 		m_table[id.GetIntId()].erase(price);
 	}
 
+	void Iterate(std::function<void(ItemId const& id, ItemPrice price, ItemCount count)> const& cb) const final
+	{
+		for (int itemIdInt = 0; itemIdInt < ItemId::COUNT; ++itemIdInt)
+		{
+			for (auto &pair : m_table[itemIdInt])
+			{
+				cb(ItemId::CreateFromInt(itemIdInt), pair.first, pair.second);
+			}
+		}
+	}
+
 private:
 	class FoundResult : public IFindResult
 	{
