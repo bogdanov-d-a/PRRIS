@@ -2,6 +2,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 #include "OrderCalculator.h"
 
 class ItemAccessor : public IItemAccessor
@@ -92,7 +93,7 @@ OrderCalculator GetOrderCalculator()
 			const auto item = ItemId::CreateFromInt(itemIdInt);
 			const auto price = priceProvider(item);
 
-			++table[itemIdInt][price];
+			table[itemIdInt][price] += count;
 		}
 
 		{
@@ -114,6 +115,67 @@ OrderCalculator GetOrderCalculator()
 	};
 }
 
+using ItemGroupMerger = std::function<void(std::vector<std::reference_wrapper<ItemCount>> const&, ItemCount&)>;
+
+ItemGroupMerger GetItemGroupMerger()
+{
+	return [](std::vector<std::reference_wrapper<ItemCount>> const& sources, ItemCount &target) {
+		ItemCount maxUnion = sources[0].get();
+		for (auto &source : sources)
+		{
+			maxUnion = std::min(maxUnion, source.get());
+		}
+
+		for (auto &source : sources)
+		{
+			source.get() -= maxUnion;
+		}
+		target += maxUnion;
+	};
+}
+
+using OrderTableItemMutator = std::function<void(ItemId const& oldId,
+	ItemPrice oldPrice, ItemId const& newId, ItemPrice newPrice, ItemCount count)>;
+
+OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
+{
+	return [&](ItemId const& oldId, ItemPrice oldPrice,
+		ItemId const& newId, ItemPrice newPrice, ItemCount count)
+	{
+		{
+			auto old = data.Find(oldId, oldPrice);
+			if (!old)
+			{
+				throw std::exception();
+			}
+
+			auto oldValue = old->GetValue();
+			if (oldValue < count)
+			{
+				throw std::exception();
+			}
+			else if (oldValue == count)
+			{
+				data.Remove(oldId, oldPrice);
+			}
+			else {
+				old->SetValue(oldValue - count);
+			}
+		}
+
+		{
+			auto new_ = data.Find(newId, newPrice);
+			if (!new_)
+			{
+				data.Insert(newId, newPrice, 0);
+				new_ = data.Find(newId, newPrice);
+			}
+
+			new_->SetValue(new_->GetValue() + count);
+		}
+	};
+}
+
 int main()
 {
 	auto itemEnumerator = [](ItemFunc const& itemFunc) {
@@ -127,9 +189,9 @@ int main()
 
 	auto itemPriceProvider = [](ItemId const& itemId) {
 		constexpr std::array<std::pair<char, int>, 3> itemPrices = {{
-			{ 'A', 2 },
-			{ 'B', 4 },
-			{ 'C', 3 },
+			{ 'A', 20 },
+			{ 'B', 40 },
+			{ 'C', 30 },
 		}};
 
 		const auto result = find_if(itemPrices.begin(), itemPrices.end(), [&](std::pair<char, int> const& item) {
@@ -145,11 +207,35 @@ int main()
 	};
 
 	auto itemTransformer = [](IItemAccessor &itemAccessor) {
-		auto it = itemAccessor.Find(ItemId::CreateFromChar('B'), 4);
-		it->SetValue(42);
+		auto getItemFirstPriceAndCount = [&](ItemId const& id) {
+			std::pair<ItemPrice, ItemCount> result = { UINT_MAX, UINT_MAX };
+			itemAccessor.Iterate([&](ItemId const& innerId, ItemPrice price, ItemCount count) {
+				if (result.first == UINT_MAX && innerId.GetCharId() == id.GetCharId())
+				{
+					result = { price, count } ;
+				}
+			});
+			if (result.first == UINT_MAX)
+			{
+				throw std::exception();
+			}
+			return result;
+		};
 
-		itemAccessor.Insert(ItemId::CreateFromChar('H'), 666, 13);
-		itemAccessor.Insert(ItemId::CreateFromChar('A'), 1, 99);
+		const auto aId = ItemId::CreateFromChar('A');
+		auto aPriceCount = getItemFirstPriceAndCount(aId);
+
+		const auto bId = ItemId::CreateFromChar('B');
+		auto bPriceCount = getItemFirstPriceAndCount(bId);
+
+		ItemCount abCount = 0;
+
+		auto igm = GetItemGroupMerger();
+		igm({ aPriceCount.second, bPriceCount.second }, abCount);
+
+		auto otim = GetOrderTableItemMutator(itemAccessor);
+		otim(aId, aPriceCount.first, aId, aPriceCount.first - 5, abCount);
+		otim(bId, bPriceCount.first, bId, bPriceCount.first - 5, abCount);
 	};
 
 	auto resultPrinter = [](ItemInfo const& info) {
