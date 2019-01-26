@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ItemPriceProvider.h"
+#include <memory>
 
 using ItemFunc = std::function<void(ItemId const&)>;
 using ItemEnumerator = std::function<void(ItemFunc const&)>;

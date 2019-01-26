@@ -115,12 +115,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="OrderCalculatorFactory.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ItemId.h" />
     <ClInclude Include="ItemPriceProvider.h" />
     <ClInclude Include="OrderCalculator.h" />
+    <ClInclude Include="OrderCalculatorFactory.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
