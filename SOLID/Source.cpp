@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <set>
+#include <map>
 #include "OrderCalculatorFactory.h"
 
 using ItemGroupMerger = std::function<void(std::vector<std::reference_wrapper<ItemCount>> const&, ItemCount&)>;
@@ -65,6 +67,49 @@ OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
 	};
 }
 
+using ItemCountProvider = std::function<ItemCount&(std::set<char> const&)>;
+using GroupDiscountApplier = std::function<void(ItemPriceProvider const&,
+	ItemCountProvider const&, ItemGroupMerger const&, OrderTableItemMutator const&)>;
+
+using ItemDiscountCalculator = std::function<ItemPrice(ItemPrice)>;
+
+GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
+	std::set<char> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
+{
+	return [=](ItemPriceProvider const& itemPriceProvider, ItemCountProvider const& itemCountProvider,
+			ItemGroupMerger const& itemGroupMerger, OrderTableItemMutator const& orderTableItemMutator) {
+		std::set<char> group;
+		std::vector<std::reference_wrapper<ItemCount>> itemCounts;
+
+		for (auto &id : ids)
+		{
+			group.insert(id.GetCharId());
+			itemCounts.push_back(itemCountProvider({ id.GetCharId() }));
+		}
+
+		auto& groupCount = itemCountProvider(group);
+		itemGroupMerger(itemCounts, groupCount);
+
+		for (auto &id : ids)
+		{
+			if (keepPrice.find(id.GetCharId()) != keepPrice.end())
+			{
+				continue;
+			}
+
+			const auto price = itemPriceProvider(id);
+			orderTableItemMutator(id, price, id, itemDiscountCalculator(price), groupCount);
+		}
+	};
+}
+
+ItemDiscountCalculator GetItemPercentageDiscountCalculator(int percentage)
+{
+	return [=](ItemPrice price) {
+		return price * (100 - percentage) / 100;
+	};
+}
+
 class ResultPrinter : public IResultAcceptor
 {
 	void OnItem(ItemInfo const & info) final
@@ -124,20 +169,29 @@ int main()
 			return result;
 		};
 
-		const auto aId = ItemId::CreateFromChar('A');
-		auto aPriceCount = getItemFirstPriceAndCount(aId);
+		std::map<std::set<char>, ItemCount> itemCounts;
 
-		const auto bId = ItemId::CreateFromChar('B');
-		auto bPriceCount = getItemFirstPriceAndCount(bId);
+		auto itemPriceProvider = [&](ItemId const& id) {
+			return getItemFirstPriceAndCount(id).first;
+		};
 
-		ItemCount abCount = 0;
+		auto itemCountProvider = [&](std::set<char> const& ids) -> ItemCount& {
+			auto itemCount = itemCounts.find(ids);
+			if (itemCount != itemCounts.end())
+			{
+				return itemCount->second;
+			}
+
+			itemCounts[ids] = (ids.size() == 1)
+				? getItemFirstPriceAndCount(ItemId::CreateFromChar(*ids.begin())).second
+				: 0;
+			return itemCounts[ids];
+		};
 
 		auto igm = GetItemGroupMerger();
-		igm({ aPriceCount.second, bPriceCount.second }, abCount);
-
 		auto otim = GetOrderTableItemMutator(itemAccessor);
-		otim(aId, aPriceCount.first, aId, aPriceCount.first - 5, abCount);
-		otim(bId, bPriceCount.first, bId, bPriceCount.first - 5, abCount);
+		auto gda = GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar('B') }, {}, GetItemPercentageDiscountCalculator(10));
+		gda(itemPriceProvider, itemCountProvider, igm, otim);
 	};
 
 	auto totalCostModifier = [](ItemPrice cost) {
