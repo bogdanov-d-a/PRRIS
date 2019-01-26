@@ -33,7 +33,13 @@ public:
 
 using ItemTransformer = std::function<void(IItemAccessor &itemAccessor)>;
 
-using ResultAcceptor = std::function<void(ItemInfo const&)>;
+class IResultAcceptor
+{
+public:
+	virtual ~IResultAcceptor() = default;
+	virtual void OnItem(ItemInfo const& item) = 0;
+	virtual void OnTotalCost(ItemPrice cost) = 0;
+};
 
 using OrderCalculator = std::function<void(ItemEnumerator const&,
-	ItemPriceProvider const&, ItemTransformer const&, ResultAcceptor const&)>;
+	ItemPriceProvider const&, ItemTransformer const&, IResultAcceptor&)>;

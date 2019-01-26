@@ -75,7 +75,7 @@ private:
 OrderCalculator GetOrderCalculator()
 {
 	return [](ItemEnumerator const& itemEnumerator, ItemPriceProvider const& priceProvider,
-			ItemTransformer const& itemTransformer, ResultAcceptor const& resultAcceptor) {
+			ItemTransformer const& itemTransformer, IResultAcceptor &resultAcceptor) {
 		std::vector<ItemCount> countTable(ItemId::COUNT, 0);
 		itemEnumerator([&](ItemId const& itemId) {
 			++countTable[itemId.GetIntId()];
@@ -101,6 +101,7 @@ OrderCalculator GetOrderCalculator()
 			itemTransformer(ia);
 		}
 
+		ItemPrice totalCost = 0;
 		for (int itemIdInt = 0; itemIdInt < ItemId::COUNT; ++itemIdInt)
 		{
 			const auto item = ItemId::CreateFromInt(itemIdInt);
@@ -109,9 +110,12 @@ OrderCalculator GetOrderCalculator()
 			{
 				const auto price = pair.first;
 				const auto count = pair.second;
-				resultAcceptor({ item, price, count, price * count });
+				const auto cost = price * count;
+				resultAcceptor.OnItem({ item, price, count, cost });
+				totalCost += cost;
 			}
 		}
+		resultAcceptor.OnTotalCost(totalCost);
 	};
 }
 
@@ -176,6 +180,19 @@ OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
 	};
 }
 
+class ResultPrinter : public IResultAcceptor
+{
+	void OnItem(ItemInfo const & info) final
+	{
+		std::cout << info.id.GetCharId() << ": " << info.price << " x " << info.count << " = " << info.total << std::endl;
+	}
+
+	void OnTotalCost(ItemPrice cost) final
+	{
+		std::cout << "Total cost: " << cost << std::endl;
+	}
+};
+
 int main()
 {
 	auto itemEnumerator = [](ItemFunc const& itemFunc) {
@@ -238,9 +255,7 @@ int main()
 		otim(bId, bPriceCount.first, bId, bPriceCount.first - 5, abCount);
 	};
 
-	auto resultPrinter = [](ItemInfo const& info) {
-		std::cout << info.id.GetCharId() << ": " << info.price << " x " << info.count << " = " << info.total << std::endl;
-	};
+	ResultPrinter resultPrinter;
 
 	auto oc = GetOrderCalculator();
 	oc(itemEnumerator, itemPriceProvider, itemTransformer, resultPrinter);
