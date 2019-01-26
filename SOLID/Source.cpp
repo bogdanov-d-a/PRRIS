@@ -74,8 +74,8 @@ private:
 
 OrderCalculator GetOrderCalculator()
 {
-	return [](ItemEnumerator const& itemEnumerator, ItemPriceProvider const& priceProvider,
-			ItemTransformer const& itemTransformer, IResultAcceptor &resultAcceptor) {
+	return [](ItemEnumerator const& itemEnumerator, ItemPriceProvider const& priceProvider, ItemTransformer const& itemTransformer,
+			TotalCostModifier const& totalCostModifier, IResultAcceptor &resultAcceptor) {
 		std::vector<ItemCount> countTable(ItemId::COUNT, 0);
 		itemEnumerator([&](ItemId const& itemId) {
 			++countTable[itemId.GetIntId()];
@@ -115,7 +115,7 @@ OrderCalculator GetOrderCalculator()
 				totalCost += cost;
 			}
 		}
-		resultAcceptor.OnTotalCost(totalCost);
+		resultAcceptor.OnTotalCost(totalCostModifier(totalCost));
 	};
 }
 
@@ -255,10 +255,14 @@ int main()
 		otim(bId, bPriceCount.first, bId, bPriceCount.first - 5, abCount);
 	};
 
+	auto totalCostModifier = [](ItemPrice cost) {
+		return cost;
+	};
+
 	ResultPrinter resultPrinter;
 
 	auto oc = GetOrderCalculator();
-	oc(itemEnumerator, itemPriceProvider, itemTransformer, resultPrinter);
+	oc(itemEnumerator, itemPriceProvider, itemTransformer, totalCostModifier, resultPrinter);
 
 	std::cin.get();
 	return 0;

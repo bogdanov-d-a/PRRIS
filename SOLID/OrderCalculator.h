@@ -33,6 +33,8 @@ public:
 
 using ItemTransformer = std::function<void(IItemAccessor &itemAccessor)>;
 
+using TotalCostModifier = std::function<ItemPrice(ItemPrice cost)>;
+
 class IResultAcceptor
 {
 public:
@@ -41,5 +43,5 @@ public:
 	virtual void OnTotalCost(ItemPrice cost) = 0;
 };
 
-using OrderCalculator = std::function<void(ItemEnumerator const&,
-	ItemPriceProvider const&, ItemTransformer const&, IResultAcceptor&)>;
+using OrderCalculator = std::function<void(ItemEnumerator const&, ItemPriceProvider const&,
+	ItemTransformer const&, TotalCostModifier const&, IResultAcceptor&)>;
