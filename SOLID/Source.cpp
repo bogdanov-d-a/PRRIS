@@ -8,6 +8,9 @@
 #include "ItemPercentageDiscountCalculator.h"
 #include "GroupDiscountApplierFactory.h"
 
+namespace
+{
+
 class ResultPrinter : public IResultAcceptor
 {
 	void OnItem(ItemInfo const & info) final
@@ -20,6 +23,13 @@ class ResultPrinter : public IResultAcceptor
 		std::cout << "Total cost: " << cost << std::endl;
 	}
 };
+
+std::ostream& PrintInfo()
+{
+	return (std::cout << "INFO: ");
+}
+
+}
 
 int main()
 {
@@ -106,9 +116,27 @@ int main()
 			groupDiscountAppliers.push_back(GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar(id) }, { 'A' }, GetItemPercentageDiscountCalculator(5)));
 		}
 
+		auto beforeMutatingOrderTable = [&](std::vector<ItemId> const& ids, ItemCount count) {
+			auto &info = PrintInfo();
+			info << "Merging " << count << " items (";
+
+			bool firstId = true;
+			for (auto &id : ids)
+			{
+				if (!firstId)
+				{
+					info << ",";
+				}
+				info << id.GetCharId();
+				firstId = false;
+			}
+
+			info << ")" << std::endl;
+		};
+
 		for (auto &groupDiscountApplier : groupDiscountAppliers)
 		{
-			groupDiscountApplier(itemPriceProvider, itemCountProvider, igm, otim);
+			groupDiscountApplier(itemPriceProvider, itemCountProvider, igm, beforeMutatingOrderTable, otim);
 		}
 
 		itemAccessor.Iterate([&](ItemId const& id, ItemPrice, ItemCount count) {

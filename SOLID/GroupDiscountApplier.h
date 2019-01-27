@@ -8,5 +8,6 @@
 #include "OrderTableItemMutator.h"
 
 using ItemCountProvider = std::function<ItemCount&(std::set<char> const&)>;
-using GroupDiscountApplier = std::function<void(ItemPriceProvider const&,
-	ItemCountProvider const&, ItemGroupMerger const&, OrderTableItemMutator const&)>;
+using BeforeMutatingOrderTable = std::function<void(std::vector<ItemId> const&, ItemCount)>;
+using GroupDiscountApplier = std::function<void(ItemPriceProvider const&, ItemCountProvider const&,
+	ItemGroupMerger const&, BeforeMutatingOrderTable const&, OrderTableItemMutator const&)>;

@@ -4,7 +4,8 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 	std::set<char> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
 {
 	return [=](ItemPriceProvider const& itemPriceProvider, ItemCountProvider const& itemCountProvider,
-		ItemGroupMerger const& itemGroupMerger, OrderTableItemMutator const& orderTableItemMutator) {
+			ItemGroupMerger const& itemGroupMerger, BeforeMutatingOrderTable const& beforeMutatingOrderTable,
+			OrderTableItemMutator const& orderTableItemMutator) {
 		std::set<char> group;
 		std::vector<std::reference_wrapper<ItemCount>> itemCounts;
 
@@ -21,6 +22,8 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 		{
 			return;
 		}
+
+		beforeMutatingOrderTable(ids, groupCount);
 
 		for (auto &id : ids)
 		{
