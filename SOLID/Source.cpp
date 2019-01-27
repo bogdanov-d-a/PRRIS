@@ -90,6 +90,11 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 		auto& groupCount = itemCountProvider(group);
 		itemGroupMerger(itemCounts, groupCount);
 
+		if (groupCount == 0)
+		{
+			return;
+		}
+
 		for (auto &id : ids)
 		{
 			if (keepPrice.find(id.GetCharId()) != keepPrice.end())
@@ -164,17 +169,18 @@ int main()
 					result = { price, count } ;
 				}
 			});
-			if (result.first == UINT_MAX)
-			{
-				throw std::exception();
-			}
 			return result;
 		};
 
 		std::map<std::set<char>, ItemCount> itemCounts;
 
 		auto itemPriceProvider = [&](ItemId const& id) {
-			return getItemFirstPriceAndCount(id).first;
+			auto price = getItemFirstPriceAndCount(id).first;
+			if (price == UINT_MAX)
+			{
+				throw std::exception();
+			}
+			return price;
 		};
 
 		auto itemCountProvider = [&](std::set<char> const& ids) -> ItemCount& {
@@ -184,16 +190,33 @@ int main()
 				return itemCount->second;
 			}
 
-			itemCounts[ids] = (ids.size() == 1)
-				? getItemFirstPriceAndCount(ItemId::CreateFromChar(*ids.begin())).second
-				: 0;
+			auto singleCountGetter = [&] {
+				auto result = getItemFirstPriceAndCount(ItemId::CreateFromChar(*ids.begin())).second;
+				return result == UINT_MAX ? 0 : result;
+			};
+
+			itemCounts[ids] = (ids.size() == 1) ? singleCountGetter() : 0;
 			return itemCounts[ids];
 		};
 
 		auto igm = GetItemGroupMerger();
 		auto otim = GetOrderTableItemMutator(itemAccessor);
-		auto gda = GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar('B') }, {}, GetItemPercentageDiscountCalculator(10));
-		gda(itemPriceProvider, itemCountProvider, igm, otim);
+
+		std::vector<GroupDiscountApplier> groupDiscountAppliers = {
+			GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar('B') }, {}, GetItemPercentageDiscountCalculator(10)),
+			GetGroupDiscountApplier({ ItemId::CreateFromChar('D'), ItemId::CreateFromChar('E') }, {}, GetItemPercentageDiscountCalculator(5)),
+			GetGroupDiscountApplier({ ItemId::CreateFromChar('E'), ItemId::CreateFromChar('F'), ItemId::CreateFromChar('G') }, {}, GetItemPercentageDiscountCalculator(5)),
+		};
+
+		for (char id : { 'K', 'L', 'M' })
+		{
+			groupDiscountAppliers.push_back(GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar(id) }, { 'A' }, GetItemPercentageDiscountCalculator(5)));
+		}
+
+		for (auto &groupDiscountApplier : groupDiscountAppliers)
+		{
+			groupDiscountApplier(itemPriceProvider, itemCountProvider, igm, otim);
+		}
 
 		itemAccessor.Iterate([&](ItemId const& id, ItemPrice, ItemCount count) {
 			if (id.GetCharId() != 'A' && id.GetCharId() != 'C')
