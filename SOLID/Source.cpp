@@ -1,7 +1,8 @@
-#include <array>
 #include <iostream>
+#include <vector>
 #include <set>
 #include <map>
+#include <algorithm>
 #include "OrderCalculatorFactory.h"
 #include "ItemGroupMergerFactory.h"
 #include "OrderTableItemMutatorFactory.h"
@@ -34,7 +35,7 @@ std::ostream& PrintInfo()
 int main()
 {
 	auto itemEnumerator = [](ItemFunc const& itemFunc) {
-		constexpr std::array<char, 4> items = {{ 'A', 'B', 'C', 'B' }};
+		const std::vector<char> items = { 'A', 'B', 'C', 'B' };
 
 		for (auto &item : items)
 		{
@@ -43,7 +44,7 @@ int main()
 	};
 
 	auto itemPriceProvider = [](ItemId const& itemId) {
-		constexpr std::array<std::pair<char, int>, 3> itemPrices = {{
+		const std::vector<std::pair<char, int>> itemPrices = {{
 			{ 'A', 20 },
 			{ 'B', 40 },
 			{ 'C', 30 },
