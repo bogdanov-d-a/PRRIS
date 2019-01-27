@@ -4,7 +4,7 @@
 
 void EnumerateItems(ItemFunc const& itemFunc)
 {
-	const std::vector<char> items = { 'A', 'B', 'C', 'B' };
+	const std::vector<char> items = { 'A', 'B', 'C', 'B', 'A', 'D', 'D', 'E', 'E', 'E', 'F', 'G', 'K', 'L', 'M', 'A', 'A' };
 
 	for (auto &item : items)
 	{
