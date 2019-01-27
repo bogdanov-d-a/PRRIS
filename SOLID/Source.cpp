@@ -150,26 +150,36 @@ int main()
 	auto totalCostModifier = [&](ItemPrice cost) {
 		ItemDiscountCalculator idc;
 
+		auto &info = PrintInfo();
+		info << "cost = " << cost << ", items = " << itemForTotalDiscountCount << ", discount = ";
+
 		if (itemForTotalDiscountCount >= 5)
 		{
 			idc = GetItemPercentageDiscountCalculator(20);
+			info << 20;
 		}
 		else if (itemForTotalDiscountCount >= 4)
 		{
 			idc = GetItemPercentageDiscountCalculator(10);
+			info << 10;
 		}
 		else if (itemForTotalDiscountCount >= 3)
 		{
 			idc = GetItemPercentageDiscountCalculator(5);
+			info << 5;
 		}
 		else
 		{
 			idc = [](ItemPrice price) {
 				return price;
 			};
+			info << 0;
 		}
 
-		return idc(cost);
+		auto newCost = idc(cost);
+		info << ", new cost = " << newCost << std::endl;
+
+		return newCost;
 	};
 
 	ResultPrinter resultPrinter;
