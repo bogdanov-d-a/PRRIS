@@ -15,9 +15,19 @@ void EnumerateItems(ItemFunc const& itemFunc)
 ItemPrice GetItemPrice(ItemId const& itemId)
 {
 	const std::vector<std::pair<char, int>> itemPrices = { {
-		{ 'A', 20 },
-		{ 'B', 40 },
-		{ 'C', 30 },
+		{ 'A', 200 },
+		{ 'B', 400 },
+		{ 'C', 600 },
+		{ 'D', 350 },
+		{ 'E', 450 },
+		{ 'F', 150 },
+		{ 'G', 650 },
+		{ 'H', 250 },
+		{ 'I', 50 },
+		{ 'J', 100 },
+		{ 'K', 500 },
+		{ 'L', 300 },
+		{ 'M', 550 },
 	} };
 
 	const auto result = find_if(itemPrices.begin(), itemPrices.end(), [&](std::pair<char, int> const& item) {
