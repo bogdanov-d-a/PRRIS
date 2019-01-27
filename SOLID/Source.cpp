@@ -103,7 +103,7 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 	};
 }
 
-ItemDiscountCalculator GetItemPercentageDiscountCalculator(int percentage)
+ItemDiscountCalculator GetItemPercentageDiscountCalculator(ItemPrice percentage)
 {
 	return [=](ItemPrice price) {
 		return price * (100 - percentage) / 100;
@@ -153,7 +153,9 @@ int main()
 		return result->second;
 	};
 
-	auto itemTransformer = [](IItemAccessor &itemAccessor) {
+	ItemCount itemForTotalDiscountCount = 0;
+
+	auto itemTransformer = [&](IItemAccessor &itemAccessor) {
 		auto getItemFirstPriceAndCount = [&](ItemId const& id) {
 			std::pair<ItemPrice, ItemCount> result = { UINT_MAX, UINT_MAX };
 			itemAccessor.Iterate([&](ItemId const& innerId, ItemPrice price, ItemCount count) {
@@ -192,10 +194,38 @@ int main()
 		auto otim = GetOrderTableItemMutator(itemAccessor);
 		auto gda = GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar('B') }, {}, GetItemPercentageDiscountCalculator(10));
 		gda(itemPriceProvider, itemCountProvider, igm, otim);
+
+		itemAccessor.Iterate([&](ItemId const& id, ItemPrice, ItemCount count) {
+			if (id.GetCharId() != 'A' && id.GetCharId() != 'C')
+			{
+				itemForTotalDiscountCount += count;
+			}
+		});
 	};
 
-	auto totalCostModifier = [](ItemPrice cost) {
-		return cost;
+	auto totalCostModifier = [&](ItemPrice cost) {
+		ItemDiscountCalculator idc;
+
+		if (itemForTotalDiscountCount >= 5)
+		{
+			idc = GetItemPercentageDiscountCalculator(20);
+		}
+		else if (itemForTotalDiscountCount >= 4)
+		{
+			idc = GetItemPercentageDiscountCalculator(10);
+		}
+		else if (itemForTotalDiscountCount >= 3)
+		{
+			idc = GetItemPercentageDiscountCalculator(5);
+		}
+		else
+		{
+			idc = [](ItemPrice price) {
+				return price;
+			};
+		}
+
+		return idc(cost);
 	};
 
 	ResultPrinter resultPrinter;
