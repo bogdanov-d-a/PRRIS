@@ -5,12 +5,11 @@
 #include "OrderCalculatorFactory.h"
 #include "ItemGroupMergerFactory.h"
 #include "OrderTableItemMutatorFactory.h"
+#include "ItemPercentageDiscountCalculator.h"
 
 using ItemCountProvider = std::function<ItemCount&(std::set<char> const&)>;
 using GroupDiscountApplier = std::function<void(ItemPriceProvider const&,
 	ItemCountProvider const&, ItemGroupMerger const&, OrderTableItemMutator const&)>;
-
-using ItemDiscountCalculator = std::function<ItemPrice(ItemPrice)>;
 
 GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 	std::set<char> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
@@ -44,13 +43,6 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 			const auto price = itemPriceProvider(id);
 			orderTableItemMutator(id, price, id, itemDiscountCalculator(price), groupCount);
 		}
-	};
-}
-
-ItemDiscountCalculator GetItemPercentageDiscountCalculator(ItemPrice percentage)
-{
-	return [=](ItemPrice price) {
-		return price * (100 - percentage) / 100;
 	};
 }
 

@@ -116,14 +116,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ItemGroupMergerFactory.cpp" />
+    <ClCompile Include="ItemPercentageDiscountCalculator.cpp" />
     <ClCompile Include="OrderCalculatorFactory.cpp" />
     <ClCompile Include="OrderTableItemMutatorFactory.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ItemDiscountCalculator.h" />
     <ClInclude Include="ItemGroupMerger.h" />
     <ClInclude Include="ItemGroupMergerFactory.h" />
     <ClInclude Include="ItemId.h" />
+    <ClInclude Include="ItemPercentageDiscountCalculator.h" />
     <ClInclude Include="ItemPriceProvider.h" />
     <ClInclude Include="OrderCalculator.h" />
     <ClInclude Include="OrderCalculatorFactory.h" />
