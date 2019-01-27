@@ -1,13 +1,12 @@
 #include <iostream>
-#include <vector>
 #include <set>
 #include <map>
-#include <algorithm>
 #include "OrderCalculatorFactory.h"
 #include "ItemGroupMergerFactory.h"
 #include "OrderTableItemMutatorFactory.h"
 #include "ItemPercentageDiscountCalculator.h"
 #include "GroupDiscountApplierFactory.h"
+#include "ItemDataProvider.h"
 
 namespace
 {
@@ -34,34 +33,6 @@ std::ostream& PrintInfo()
 
 int main()
 {
-	auto itemEnumerator = [](ItemFunc const& itemFunc) {
-		const std::vector<char> items = { 'A', 'B', 'C', 'B' };
-
-		for (auto &item : items)
-		{
-			itemFunc(ItemId::CreateFromChar(item));
-		}
-	};
-
-	auto itemPriceProvider = [](ItemId const& itemId) {
-		const std::vector<std::pair<char, int>> itemPrices = {{
-			{ 'A', 20 },
-			{ 'B', 40 },
-			{ 'C', 30 },
-		}};
-
-		const auto result = find_if(itemPrices.begin(), itemPrices.end(), [&](std::pair<char, int> const& item) {
-			return item.first == itemId.GetCharId();
-		});
-
-		if (result == itemPrices.end())
-		{
-			throw std::exception();
-		}
-
-		return result->second;
-	};
-
 	ItemCount itemForTotalDiscountCount = 0;
 
 	auto itemTransformer = [&](IItemAccessor &itemAccessor) {
@@ -186,7 +157,7 @@ int main()
 	ResultPrinter resultPrinter;
 
 	auto oc = GetOrderCalculator();
-	oc(itemEnumerator, itemPriceProvider, itemTransformer, totalCostModifier, resultPrinter);
+	oc(EnumerateItems, GetItemPrice, itemTransformer, totalCostModifier, resultPrinter);
 
 	std::cin.get();
 	return 0;
