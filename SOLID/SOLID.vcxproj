@@ -115,10 +115,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ItemGroupMergerFactory.cpp" />
     <ClCompile Include="OrderCalculatorFactory.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ItemGroupMerger.h" />
+    <ClInclude Include="ItemGroupMergerFactory.h" />
     <ClInclude Include="ItemId.h" />
     <ClInclude Include="ItemPriceProvider.h" />
     <ClInclude Include="OrderCalculator.h" />

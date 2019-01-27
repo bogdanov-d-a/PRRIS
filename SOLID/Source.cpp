@@ -1,29 +1,9 @@
 #include <array>
 #include <iostream>
-#include <algorithm>
-#include <vector>
 #include <set>
 #include <map>
 #include "OrderCalculatorFactory.h"
-
-using ItemGroupMerger = std::function<void(std::vector<std::reference_wrapper<ItemCount>> const&, ItemCount&)>;
-
-ItemGroupMerger GetItemGroupMerger()
-{
-	return [](std::vector<std::reference_wrapper<ItemCount>> const& sources, ItemCount &target) {
-		ItemCount maxUnion = sources[0].get();
-		for (auto &source : sources)
-		{
-			maxUnion = std::min(maxUnion, source.get());
-		}
-
-		for (auto &source : sources)
-		{
-			source.get() -= maxUnion;
-		}
-		target += maxUnion;
-	};
-}
+#include "ItemGroupMergerFactory.h"
 
 using OrderTableItemMutator = std::function<void(ItemId const& oldId,
 	ItemPrice oldPrice, ItemId const& newId, ItemPrice newPrice, ItemCount count)>;
