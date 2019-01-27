@@ -4,48 +4,7 @@
 #include <map>
 #include "OrderCalculatorFactory.h"
 #include "ItemGroupMergerFactory.h"
-
-using OrderTableItemMutator = std::function<void(ItemId const& oldId,
-	ItemPrice oldPrice, ItemId const& newId, ItemPrice newPrice, ItemCount count)>;
-
-OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
-{
-	return [&](ItemId const& oldId, ItemPrice oldPrice,
-		ItemId const& newId, ItemPrice newPrice, ItemCount count)
-	{
-		{
-			auto old = data.Find(oldId, oldPrice);
-			if (!old)
-			{
-				throw std::exception();
-			}
-
-			auto oldValue = old->GetValue();
-			if (oldValue < count)
-			{
-				throw std::exception();
-			}
-			else if (oldValue == count)
-			{
-				data.Remove(oldId, oldPrice);
-			}
-			else {
-				old->SetValue(oldValue - count);
-			}
-		}
-
-		{
-			auto new_ = data.Find(newId, newPrice);
-			if (!new_)
-			{
-				data.Insert(newId, newPrice, 0);
-				new_ = data.Find(newId, newPrice);
-			}
-
-			new_->SetValue(new_->GetValue() + count);
-		}
-	};
-}
+#include "OrderTableItemMutatorFactory.h"
 
 using ItemCountProvider = std::function<ItemCount&(std::set<char> const&)>;
 using GroupDiscountApplier = std::function<void(ItemPriceProvider const&,

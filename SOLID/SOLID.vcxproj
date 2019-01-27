@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="ItemGroupMergerFactory.cpp" />
     <ClCompile Include="OrderCalculatorFactory.cpp" />
+    <ClCompile Include="OrderTableItemMutatorFactory.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +127,8 @@
     <ClInclude Include="ItemPriceProvider.h" />
     <ClInclude Include="OrderCalculator.h" />
     <ClInclude Include="OrderCalculatorFactory.h" />
+    <ClInclude Include="OrderTableItemMutator.h" />
+    <ClInclude Include="OrderTableItemMutatorFactory.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
