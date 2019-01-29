@@ -125,8 +125,8 @@ int main()
 {
 	auto wordEnumerator = GetFileWordsEnumerator("input.txt");
 	const auto solution = Solve(wordEnumerator, "Today", "day");
-	std::cout << "min distance: " << solution.min << std::endl;
-	std::cout << "max distance: " << solution.max << std::endl;
+	std::cout << "min distance: " << ((solution.min == INT_MAX) ? "no" : std::to_string(solution.min)) << std::endl;
+	std::cout << "max distance: " << ((solution.max == INT_MIN) ? "no" : std::to_string(solution.max)) << std::endl;
 	std::cin.get();
 	return 0;
 }
