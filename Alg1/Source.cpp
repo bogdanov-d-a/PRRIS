@@ -25,10 +25,13 @@ public:
 		}
 		else
 		{
-			++m_firstDistance;
+			if (m_firstDistance != INT_MAX)
+			{
+				++m_firstDistance;
+			}
 		}
 
-		if (word == m_second)
+		if (word == m_second && m_firstDistance != INT_MAX)
 		{
 			m_result = std::min(m_result, m_firstDistance - 1);
 		}
