@@ -147,10 +147,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="GroupDiscountApplier.h" />
+    <ClInclude Include="GroupDiscountApplierFactory.h" />
+    <ClInclude Include="ItemDiscountCalculator.h" />
+    <ClInclude Include="ItemGroupMerger.h" />
+    <ClInclude Include="ItemGroupMergerFactory.h" />
+    <ClInclude Include="ItemPercentageDiscountCalculator.h" />
+    <ClInclude Include="ItemPriceProvider.h" />
+    <ClInclude Include="OrderTableItemMutator.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GroupDiscountApplierFactory.cpp" />
+    <ClCompile Include="ItemGroupMergerFactory.cpp" />
+    <ClCompile Include="ItemPercentageDiscountCalculator.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

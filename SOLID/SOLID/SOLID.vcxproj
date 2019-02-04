@@ -115,29 +115,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GroupDiscountApplierFactory.cpp" />
     <ClCompile Include="ItemDataProvider.cpp" />
-    <ClCompile Include="ItemGroupMergerFactory.cpp" />
-    <ClCompile Include="ItemPercentageDiscountCalculator.cpp" />
     <ClCompile Include="OrderCalculatorFactory.cpp" />
     <ClCompile Include="OrderTableItemMutatorFactory.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GroupDiscountApplier.h" />
-    <ClInclude Include="GroupDiscountApplierFactory.h" />
     <ClInclude Include="ItemDataProvider.h" />
-    <ClInclude Include="ItemDiscountCalculator.h" />
-    <ClInclude Include="ItemGroupMerger.h" />
-    <ClInclude Include="ItemGroupMergerFactory.h" />
     <ClInclude Include="ItemId.h" />
-    <ClInclude Include="ItemPercentageDiscountCalculator.h" />
-    <ClInclude Include="ItemPriceProvider.h" />
     <ClInclude Include="OrderCalculator.h" />
     <ClInclude Include="OrderCalculatorFactory.h" />
-    <ClInclude Include="OrderTableItemMutator.h" />
     <ClInclude Include="OrderTableItemMutatorFactory.h" />
-    <ClInclude Include="Types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

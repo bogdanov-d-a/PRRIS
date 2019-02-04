@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GroupDiscountApplierFactory.h"
 
 GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
@@ -6,13 +7,13 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 	return [=](ItemPriceProvider const& itemPriceProvider, ItemCountProvider const& itemCountProvider,
 			ItemGroupMerger const& itemGroupMerger, BeforeMutatingOrderTable const& beforeMutatingOrderTable,
 			OrderTableItemMutator const& orderTableItemMutator) {
-		std::set<char> group;
+		std::set<ItemId> group;
 		std::vector<std::reference_wrapper<ItemCount>> itemCounts;
 
 		for (auto &id : ids)
 		{
-			group.insert(id.GetCharId());
-			itemCounts.push_back(itemCountProvider({ id.GetCharId() }));
+			group.insert(id);
+			itemCounts.push_back(itemCountProvider({ id }));
 		}
 
 		auto& groupCount = itemCountProvider(group);
@@ -27,7 +28,7 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 
 		for (auto &id : ids)
 		{
-			if (keepPrice.find(id.GetCharId()) != keepPrice.end())
+			if (keepPrice.find(id) != keepPrice.end())
 			{
 				continue;
 			}
