@@ -2,4 +2,9 @@
 
 #include "ItemGroupMerger.h"
 
+namespace discount
+{
+
 ItemGroupMerger GetItemGroupMerger();
+
+}

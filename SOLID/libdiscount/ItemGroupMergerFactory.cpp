@@ -2,6 +2,9 @@
 #include "ItemGroupMergerFactory.h"
 #include <algorithm>
 
+namespace discount
+{
+
 ItemGroupMerger GetItemGroupMerger()
 {
 	return [](std::vector<std::reference_wrapper<ItemCount>> const& sources, ItemCount &target) {
@@ -17,4 +20,6 @@ ItemGroupMerger GetItemGroupMerger()
 		}
 		target += maxUnion;
 	};
+}
+
 }

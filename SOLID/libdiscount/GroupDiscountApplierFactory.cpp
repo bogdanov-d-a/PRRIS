@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "GroupDiscountApplierFactory.h"
 
+namespace discount
+{
+
 GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 	std::set<char> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
 {
@@ -37,4 +40,6 @@ GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
 			orderTableItemMutator(id, price, id, itemDiscountCalculator(price), groupCount);
 		}
 	};
+}
+
 }
