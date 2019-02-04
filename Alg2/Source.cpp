@@ -5,7 +5,7 @@
 #include <string>
 
 // Author: Bogdanov Dmitry, PSm-22
-// Time spent: 68m
+// Time spent: base - 68m, caching - 42m
 // Insert complexity: O(N); N - insert word length
 // FindCount complexity: O(N); N - find prefix length
 // Memory usage: O(N*M); N - average prefix matching word length, M - prefix matching word count
