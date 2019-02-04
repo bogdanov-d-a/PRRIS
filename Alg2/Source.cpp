@@ -7,7 +7,7 @@
 // Author: Bogdanov Dmitry, PSm-22
 // Time spent: 68m
 // Insert complexity: O(N); N - insert word length
-// FindCount complexity: O(N*M); N - average prefix matching word length, M - prefix matching word count
+// FindCount complexity: O(N); N - find prefix length
 // Memory usage: O(N*M); N - average prefix matching word length, M - prefix matching word count
 //
 // Words are split into characters and every character is used to create a tree node:
@@ -15,8 +15,9 @@
 //   next character is appended to previous character's child
 //   ...
 //   last character's child is marked as endpoint
+//   if inserted word is new, increase childEndpointCount for whole path
 //
-// Breadth-first search (BFS) algorithm is used to find and count endpoints on prefix subtree
+// FindCount uses childEndpointCount value for obtaining result
 
 constexpr int CHAR_COUNT = 26;
 
@@ -35,7 +36,28 @@ public:
 
 	std::vector<std::unique_ptr<Node>> children;
 	bool endpoint = false;
+	unsigned int childEndpointCount = 0;
 };
+
+void IncreaseChildEndpointCount(Node &root, std::string const& word)
+{
+	Node *node = &root;
+	for (char c : word)
+	{
+		const int ci = CharToInt(c);
+		if (!node->children[ci])
+		{
+			throw std::exception();
+		}
+		++node->childEndpointCount;
+		node = node->children[ci].get();
+	}
+	if (!node->endpoint)
+	{
+		throw std::exception();
+	}
+	++node->childEndpointCount;
+}
 
 void Insert(Node &root, std::string const& word)
 {
@@ -49,7 +71,11 @@ void Insert(Node &root, std::string const& word)
 		}
 		node = node->children[ci].get();
 	}
-	node->endpoint = true;
+	if (!node->endpoint)
+	{
+		node->endpoint = true;
+		IncreaseChildEndpointCount(root, word);
+	}
 }
 
 int FindCount(Node &root, std::string const& prefix)
@@ -64,31 +90,7 @@ int FindCount(Node &root, std::string const& prefix)
 		}
 		node = node->children[ci].get();
 	}
-
-	int result = 0;
-	std::deque<Node*> nodeQueue;
-	nodeQueue.push_back(node);
-
-	while (!nodeQueue.empty())
-	{
-		const auto curNode = nodeQueue.front();
-		nodeQueue.pop_front();
-
-		if (curNode->endpoint)
-		{
-			++result;
-		}
-
-		for (int ci = 0; ci < CHAR_COUNT; ++ci)
-		{
-			if (curNode->children[ci])
-			{
-				nodeQueue.push_back(curNode->children[ci].get());
-			}
-		}
-	}
-
-	return result;
+	return node->childEndpointCount;
 }
 
 struct UserCommand
