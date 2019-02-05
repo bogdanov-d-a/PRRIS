@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include "../libdiscount/Types.h"
 
 class ItemId
 {
@@ -19,6 +20,11 @@ public:
 		return ItemId(a + MIN_ID);
 	}
 
+	static ItemId CreateFromDiscountId(discount::ItemId id)
+	{
+		return CreateFromInt(id);
+	}
+
 	const char GetCharId() const
 	{
 		return m_id;
@@ -27,6 +33,11 @@ public:
 	const int GetIntId() const
 	{
 		return GetCharId() - MIN_ID;
+	}
+
+	discount::ItemId GetDiscountId() const
+	{
+		return GetIntId();
 	}
 
 private:

@@ -127,6 +127,11 @@
     <ClInclude Include="OrderCalculatorFactory.h" />
     <ClInclude Include="OrderTableItemMutatorFactory.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libdiscount\libdiscount.vcxproj">
+      <Project>{0284a9ce-1708-4259-b729-a54840cfb3ca}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -8,12 +8,12 @@ namespace
 class ItemAccessor : public IItemAccessor
 {
 public:
-	explicit ItemAccessor(std::vector<std::map<ItemPrice, ItemCount>> &table)
+	explicit ItemAccessor(std::vector<std::map<discount::ItemPrice, discount::ItemCount>> &table)
 		: m_table(table)
 	{
 	}
 
-	std::unique_ptr<IFindResult> Find(ItemId const & id, ItemPrice price) final
+	std::unique_ptr<IFindResult> Find(ItemId const & id, discount::ItemPrice price) final
 	{
 		const auto it = m_table[id.GetIntId()].find(price);
 		if (it == m_table[id.GetIntId()].end())
@@ -23,17 +23,17 @@ public:
 		return std::make_unique<FoundResult>(m_table[id.GetIntId()], price);
 	}
 
-	void Insert(ItemId const & id, ItemPrice price, ItemCount count) final
+	void Insert(ItemId const & id, discount::ItemPrice price, discount::ItemCount count) final
 	{
 		m_table[id.GetIntId()][price] = count;
 	}
 
-	void Remove(ItemId const & id, ItemPrice price) final
+	void Remove(ItemId const & id, discount::ItemPrice price) final
 	{
 		m_table[id.GetIntId()].erase(price);
 	}
 
-	void Iterate(std::function<void(ItemId const& id, ItemPrice price, ItemCount count)> const& cb) const final
+	void Iterate(std::function<void(ItemId const& id, discount::ItemPrice price, discount::ItemCount count)> const& cb) const final
 	{
 		for (int itemIdInt = 0; itemIdInt < ItemId::COUNT; ++itemIdInt)
 		{
@@ -48,42 +48,42 @@ private:
 	class FoundResult : public IFindResult
 	{
 	public:
-		explicit FoundResult(std::map<ItemPrice, ItemCount> &map, ItemPrice key)
+		explicit FoundResult(std::map<discount::ItemPrice, discount::ItemCount> &map, discount::ItemPrice key)
 			: m_map(map)
 			, m_key(key)
 		{
 		}
 
-		const ItemCount GetValue() const final
+		const discount::ItemCount GetValue() const final
 		{
 			return m_map[m_key];
 		}
 
-		void SetValue(ItemCount newPrice) final
+		void SetValue(discount::ItemCount newPrice) final
 		{
 			m_map[m_key] = newPrice;
 		}
 
 	private:
-		std::map<ItemPrice, ItemCount> &m_map;
-		ItemPrice m_key;
+		std::map<discount::ItemPrice, discount::ItemCount> &m_map;
+		discount::ItemPrice m_key;
 	};
 
-	std::vector<std::map<ItemPrice, ItemCount>> &m_table;
+	std::vector<std::map<discount::ItemPrice, discount::ItemCount>> &m_table;
 };
 
 }
 
 OrderCalculator GetOrderCalculator()
 {
-	return [](ItemEnumerator const& itemEnumerator, ItemPriceProvider const& priceProvider, ItemTransformer const& itemTransformer,
+	return [](ItemEnumerator const& itemEnumerator, discount::ItemPriceProvider const& priceProvider, ItemTransformer const& itemTransformer,
 		TotalCostModifier const& totalCostModifier, IResultAcceptor &resultAcceptor) {
-		std::vector<ItemCount> countTable(ItemId::COUNT, 0);
+		std::vector<discount::ItemCount> countTable(ItemId::COUNT, 0);
 		itemEnumerator([&](ItemId const& itemId) {
 			++countTable[itemId.GetIntId()];
 		});
 
-		std::vector<std::map<ItemPrice, ItemCount>> table(ItemId::COUNT);
+		std::vector<std::map<discount::ItemPrice, discount::ItemCount>> table(ItemId::COUNT);
 		for (int itemIdInt = 0; itemIdInt < ItemId::COUNT; ++itemIdInt)
 		{
 			const auto count = countTable[itemIdInt];
@@ -93,7 +93,7 @@ OrderCalculator GetOrderCalculator()
 			}
 
 			const auto item = ItemId::CreateFromInt(itemIdInt);
-			const auto price = priceProvider(item);
+			const auto price = priceProvider(item.GetDiscountId());
 
 			table[itemIdInt][price] += count;
 		}
@@ -103,7 +103,7 @@ OrderCalculator GetOrderCalculator()
 			itemTransformer(ia);
 		}
 
-		ItemPrice totalCost = 0;
+		discount::ItemPrice totalCost = 0;
 		for (int itemIdInt = 0; itemIdInt < ItemId::COUNT; ++itemIdInt)
 		{
 			const auto item = ItemId::CreateFromInt(itemIdInt);

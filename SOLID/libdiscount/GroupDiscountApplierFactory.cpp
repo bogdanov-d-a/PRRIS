@@ -5,7 +5,7 @@ namespace discount
 {
 
 GroupDiscountApplier GetGroupDiscountApplier(std::vector<ItemId> const& ids,
-	std::set<char> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
+	std::set<ItemId> const& keepPrice, ItemDiscountCalculator const& itemDiscountCalculator)
 {
 	return [=](ItemPriceProvider const& itemPriceProvider, ItemCountProvider const& itemCountProvider,
 			ItemGroupMerger const& itemGroupMerger, BeforeMutatingOrderTable const& beforeMutatingOrderTable,

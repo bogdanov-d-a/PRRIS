@@ -3,4 +3,4 @@
 #include "OrderCalculator.h"
 
 void EnumerateItems(ItemFunc const& itemFunc);
-ItemPrice GetItemPrice(ItemId const& itemId);
+discount::ItemPrice GetItemPrice(ItemId const& itemId);

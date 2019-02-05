@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OrderTableItemMutator.h"
+#include "../libdiscount/OrderTableItemMutator.h"
 #include "OrderCalculator.h"
 
-OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data);
+discount::OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data);

@@ -2,10 +2,10 @@
 #include <set>
 #include <map>
 #include "OrderCalculatorFactory.h"
-#include "ItemGroupMergerFactory.h"
+#include "../libdiscount/ItemGroupMergerFactory.h"
 #include "OrderTableItemMutatorFactory.h"
-#include "ItemPercentageDiscountCalculator.h"
-#include "GroupDiscountApplierFactory.h"
+#include "../libdiscount/ItemPercentageDiscountCalculator.h"
+#include "../libdiscount/GroupDiscountApplierFactory.h"
 #include "ItemDataProvider.h"
 
 namespace
@@ -18,7 +18,7 @@ class ResultPrinter : public IResultAcceptor
 		std::cout << info.id.GetCharId() << ": " << info.price << " x " << info.count << " = " << info.total << std::endl;
 	}
 
-	void OnTotalCost(ItemPrice cost) final
+	void OnTotalCost(discount::ItemPrice cost) final
 	{
 		std::cout << "Total cost: " << cost << std::endl;
 	}
@@ -33,12 +33,16 @@ std::ostream& PrintInfo()
 
 int main()
 {
-	ItemCount itemForTotalDiscountCount = 0;
+	auto getItemPrice = [](discount::ItemId const& itemId) {
+		return GetItemPrice(ItemId::CreateFromDiscountId(itemId));
+	};
+
+	discount::ItemCount itemForTotalDiscountCount = 0;
 
 	auto itemTransformer = [&](IItemAccessor &itemAccessor) {
 		auto getItemFirstPriceAndCount = [&](ItemId const& id) {
-			std::pair<ItemPrice, ItemCount> result = { UINT_MAX, UINT_MAX };
-			itemAccessor.Iterate([&](ItemId const& innerId, ItemPrice price, ItemCount count) {
+			std::pair<discount::ItemPrice, discount::ItemCount> result = { UINT_MAX, UINT_MAX };
+			itemAccessor.Iterate([&](ItemId const& innerId, discount::ItemPrice price, discount::ItemCount count) {
 				if (result.first == UINT_MAX && innerId.GetCharId() == id.GetCharId())
 				{
 					result = { price, count } ;
@@ -47,10 +51,10 @@ int main()
 			return result;
 		};
 
-		std::map<std::set<char>, ItemCount> itemCounts;
+		std::map<std::set<discount::ItemId>, discount::ItemCount> itemCounts;
 
-		auto itemPriceProvider = [&](ItemId const& id) {
-			auto price = getItemFirstPriceAndCount(id).first;
+		auto itemPriceProvider = [&](discount::ItemId const& id) {
+			auto price = getItemFirstPriceAndCount(ItemId::CreateFromDiscountId(id)).first;
 			if (price == UINT_MAX)
 			{
 				throw std::exception();
@@ -58,7 +62,7 @@ int main()
 			return price;
 		};
 
-		auto itemCountProvider = [&](std::set<char> const& ids) -> ItemCount& {
+		auto itemCountProvider = [&](std::set<discount::ItemId> const& ids) -> discount::ItemCount& {
 			auto itemCount = itemCounts.find(ids);
 			if (itemCount != itemCounts.end())
 			{
@@ -66,7 +70,7 @@ int main()
 			}
 
 			auto singleCountGetter = [&] {
-				auto result = getItemFirstPriceAndCount(ItemId::CreateFromChar(*ids.begin())).second;
+				auto result = getItemFirstPriceAndCount(ItemId::CreateFromDiscountId(*ids.begin())).second;
 				return result == UINT_MAX ? 0 : result;
 			};
 
@@ -74,21 +78,25 @@ int main()
 			return itemCounts[ids];
 		};
 
-		auto igm = GetItemGroupMerger();
+		auto igm = discount::GetItemGroupMerger();
 		auto otim = GetOrderTableItemMutator(itemAccessor);
 
-		std::vector<GroupDiscountApplier> groupDiscountAppliers = {
-			GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar('B') }, {}, GetItemPercentageDiscountCalculator(10)),
-			GetGroupDiscountApplier({ ItemId::CreateFromChar('D'), ItemId::CreateFromChar('E') }, {}, GetItemPercentageDiscountCalculator(5)),
-			GetGroupDiscountApplier({ ItemId::CreateFromChar('E'), ItemId::CreateFromChar('F'), ItemId::CreateFromChar('G') }, {}, GetItemPercentageDiscountCalculator(5)),
+		const auto discountItemIdFromChar = [](char c) {
+			return ItemId::CreateFromChar(c).GetDiscountId();
+		};
+
+		std::vector<discount::GroupDiscountApplier> groupDiscountAppliers = {
+			discount::GetGroupDiscountApplier({ discountItemIdFromChar('A'), discountItemIdFromChar('B') }, {}, discount::GetItemPercentageDiscountCalculator(10)),
+			discount::GetGroupDiscountApplier({ discountItemIdFromChar('D'), discountItemIdFromChar('E') }, {}, discount::GetItemPercentageDiscountCalculator(5)),
+			discount::GetGroupDiscountApplier({ discountItemIdFromChar('E'), discountItemIdFromChar('F'), discountItemIdFromChar('G') }, {}, discount::GetItemPercentageDiscountCalculator(5)),
 		};
 
 		for (char id : { 'K', 'L', 'M' })
 		{
-			groupDiscountAppliers.push_back(GetGroupDiscountApplier({ ItemId::CreateFromChar('A'), ItemId::CreateFromChar(id) }, { 'A' }, GetItemPercentageDiscountCalculator(5)));
+			groupDiscountAppliers.push_back(discount::GetGroupDiscountApplier({ discountItemIdFromChar('A'), discountItemIdFromChar(id) }, { 'A' }, discount::GetItemPercentageDiscountCalculator(5)));
 		}
 
-		auto beforeMutatingOrderTable = [&](std::vector<ItemId> const& ids, ItemCount count) {
+		auto beforeMutatingOrderTable = [&](std::vector<discount::ItemId> const& ids, discount::ItemCount count) {
 			auto &info = PrintInfo();
 			info << "Merging " << count << " items (";
 
@@ -99,7 +107,7 @@ int main()
 				{
 					info << ",";
 				}
-				info << id.GetCharId();
+				info << ItemId::CreateFromDiscountId(id).GetCharId();
 				firstId = false;
 			}
 
@@ -111,7 +119,7 @@ int main()
 			groupDiscountApplier(itemPriceProvider, itemCountProvider, igm, beforeMutatingOrderTable, otim);
 		}
 
-		itemAccessor.Iterate([&](ItemId const& id, ItemPrice, ItemCount count) {
+		itemAccessor.Iterate([&](ItemId const& id, discount::ItemPrice, discount::ItemCount count) {
 			if (id.GetCharId() != 'A' && id.GetCharId() != 'C')
 			{
 				itemForTotalDiscountCount += count;
@@ -119,30 +127,30 @@ int main()
 		});
 	};
 
-	auto totalCostModifier = [&](ItemPrice cost) {
-		ItemDiscountCalculator idc;
+	auto totalCostModifier = [&](discount::ItemPrice cost) {
+		discount::ItemDiscountCalculator idc;
 
 		auto &info = PrintInfo();
 		info << "cost = " << cost << ", items = " << itemForTotalDiscountCount << ", discount = ";
 
 		if (itemForTotalDiscountCount >= 5)
 		{
-			idc = GetItemPercentageDiscountCalculator(20);
+			idc = discount::GetItemPercentageDiscountCalculator(20);
 			info << 20;
 		}
 		else if (itemForTotalDiscountCount >= 4)
 		{
-			idc = GetItemPercentageDiscountCalculator(10);
+			idc = discount::GetItemPercentageDiscountCalculator(10);
 			info << 10;
 		}
 		else if (itemForTotalDiscountCount >= 3)
 		{
-			idc = GetItemPercentageDiscountCalculator(5);
+			idc = discount::GetItemPercentageDiscountCalculator(5);
 			info << 5;
 		}
 		else
 		{
-			idc = [](ItemPrice price) {
+			idc = [](discount::ItemPrice price) {
 				return price;
 			};
 			info << 0;
@@ -157,7 +165,7 @@ int main()
 	ResultPrinter resultPrinter;
 
 	auto oc = GetOrderCalculator();
-	oc(EnumerateItems, GetItemPrice, itemTransformer, totalCostModifier, resultPrinter);
+	oc(EnumerateItems, getItemPrice, itemTransformer, totalCostModifier, resultPrinter);
 
 	std::cin.get();
 	return 0;

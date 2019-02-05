@@ -1,12 +1,13 @@
 #include "OrderTableItemMutatorFactory.h"
 
-OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
+discount::OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
 {
-	return [&](ItemId const& oldId, ItemPrice oldPrice,
-		ItemId const& newId, ItemPrice newPrice, ItemCount count)
+	return [&](discount::ItemId const& oldId, discount::ItemPrice oldPrice,
+		discount::ItemId const& newId, discount::ItemPrice newPrice, discount::ItemCount count)
 	{
 		{
-			auto old = data.Find(oldId, oldPrice);
+			auto oldIdConcrete = ItemId::CreateFromDiscountId(oldId);
+			auto old = data.Find(oldIdConcrete, oldPrice);
 			if (!old)
 			{
 				throw std::exception();
@@ -19,7 +20,7 @@ OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
 			}
 			else if (oldValue == count)
 			{
-				data.Remove(oldId, oldPrice);
+				data.Remove(oldIdConcrete, oldPrice);
 			}
 			else {
 				old->SetValue(oldValue - count);
@@ -27,11 +28,12 @@ OrderTableItemMutator GetOrderTableItemMutator(IItemAccessor &data)
 		}
 
 		{
-			auto new_ = data.Find(newId, newPrice);
+			auto newIdConcrete = ItemId::CreateFromDiscountId(newId);
+			auto new_ = data.Find(newIdConcrete, newPrice);
 			if (!new_)
 			{
-				data.Insert(newId, newPrice, 0);
-				new_ = data.Find(newId, newPrice);
+				data.Insert(newIdConcrete, newPrice, 0);
+				new_ = data.Find(newIdConcrete, newPrice);
 			}
 
 			new_->SetValue(new_->GetValue() + count);

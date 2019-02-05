@@ -12,7 +12,7 @@ void EnumerateItems(ItemFunc const& itemFunc)
 	}
 }
 
-ItemPrice GetItemPrice(ItemId const& itemId)
+discount::ItemPrice GetItemPrice(ItemId const& itemId)
 {
 	const std::vector<std::pair<char, int>> itemPrices = { {
 		{ 'A', 200 },
